@@ -23,8 +23,12 @@ class ClientFactory(CosmosDbSettings settings)
 
 	public ArmClient CreateArmClientWithManagedIdentity()
 	{
-		DefaultAzureCredential credential = new();
-		Console.WriteLine($"Arm client created with default managed identity.");
+		var credential = new DefaultAzureCredential(new DefaultAzureCredentialOptions
+		{
+			ManagedIdentityClientId = settings.AzureClientId
+		});
+
+		Console.WriteLine($"Arm client created with default managed identity. Azure client Id: {settings.AzureClientId}");
 
 		return new ArmClient(credential);
 	}

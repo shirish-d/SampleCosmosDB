@@ -24,7 +24,8 @@ try
 	await dataPlaneAction.ReadItemAsync(assetDetails.Id, assetDetails.PartitionKey);
 	assetDetails.Amount = 2000.00M;
 	await dataPlaneAction.UpsertItemAsync(assetDetails);
-	await dataPlaneAction.QueryItemsAsync($"SELECT * FROM c WHERE c.CompanyId = '{assetDetails.CompanyId}' AND c.OverviewStatus = '{assetDetails.OverviewStatus}'");
+	await dataPlaneAction.QueryItemsAsync(
+		$"SELECT * FROM c WHERE c.CompanyId = '{assetDetails.CompanyId}' AND c.OverviewStatus = '{assetDetails.OverviewStatus}'");
 	await dataPlaneAction.DeleteItemAsync(assetDetails.Id, assetDetails.PartitionKey);
 }
 catch (Exception e)
