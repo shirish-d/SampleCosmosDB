@@ -11,7 +11,7 @@ class CosmosDbAccount(ClientFactory clientFactory, CosmosDbSettings settings)
 
 	public async Task<CosmosDBAccountResource> GetAsync()
 	{
-		return cosmosDbAccount ??= await GetCosmosDbAccountAsync();
+		return cosmosDbAccount ??= await GetCosmosDbAccountByResourceIdentifierAsync();
 	}
 
 	async Task<CosmosDBAccountResource> GetCosmosDbAccountAsync()
