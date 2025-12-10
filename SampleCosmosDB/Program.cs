@@ -13,7 +13,9 @@ try
 	// Control Plane actions
 	var cosmosDbAccount = new CosmosDbAccount(new ClientFactory(cosmosDbSettings), cosmosDbSettings);
 	var controlPlaneAction = new ControlPlaneAction(cosmosDbAccount);
-	await controlPlaneAction.PerformControlPlaneAction();
+	await controlPlaneAction.CreateDatabase();
+	await controlPlaneAction.CreateContainerAsync();
+	
 
 	// Prepare data
 	var assetDetails = new AssetDetails(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid());
@@ -27,6 +29,10 @@ try
 	await dataPlaneAction.QueryItemsAsync(
 		$"SELECT * FROM c WHERE c.CompanyId = '{assetDetails.CompanyId}' AND c.OverviewStatus = '{assetDetails.OverviewStatus}'");
 	await dataPlaneAction.DeleteItemAsync(assetDetails.Id, assetDetails.PartitionKey);
+
+	// Control Plane actions
+	await controlPlaneAction.DeleteContainerAsync();
+	await controlPlaneAction.DeleteDatabaseAsync();
 }
 catch (Exception e)
 {
