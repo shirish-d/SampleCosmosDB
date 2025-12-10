@@ -12,11 +12,10 @@ try
 {
 	// Control Plane actions
 	var cosmosDbAccount = new CosmosDbAccount(new ClientFactory(cosmosDbSettings), cosmosDbSettings);
-	var controlPlaneAction = new ControlPlaneAction(cosmosDbAccount);
+	var controlPlaneAction = new ControlPlaneAction(cosmosDbAccount, cosmosDbSettings);
 	await controlPlaneAction.CreateDatabase();
 	await controlPlaneAction.CreateContainerAsync();
 	
-
 	// Prepare data
 	var assetDetails = new AssetDetails(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid());
 

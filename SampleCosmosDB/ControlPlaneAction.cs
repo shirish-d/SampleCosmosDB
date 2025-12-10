@@ -4,11 +4,8 @@ using Azure.ResourceManager.CosmosDB.Models;
 
 namespace SampleCosmosDB;
 
-class ControlPlaneAction(CosmosDbAccount cosmosDbAccount)
+class ControlPlaneAction(CosmosDbAccount cosmosDbAccount, CosmosDbSettings settings)
 {
-	const string NewDatabaseId = "Test-FixedAssetsProjections";
-	const string NewContainerId = "TestOverviews";
-
 	public async Task PerformControlPlaneAction()
 	{
 		await CreateDatabase();
@@ -23,11 +20,11 @@ class ControlPlaneAction(CosmosDbAccount cosmosDbAccount)
 		var databaseCollection = GetCosmosDbSqlDatabases(cosmosDbAccountResource);
 
 		var databaseData = new CosmosDBSqlDatabaseCreateOrUpdateContent(cosmosDbAccountResource.Data.Location,
-			new CosmosDBSqlDatabaseResourceInfo(NewDatabaseId));
+			new CosmosDBSqlDatabaseResourceInfo(settings.DatabaseId));
 
-		await databaseCollection.CreateOrUpdateAsync(WaitUntil.Completed, NewDatabaseId, databaseData);
+		await databaseCollection.CreateOrUpdateAsync(WaitUntil.Completed, settings.DatabaseId, databaseData);
 
-		Console.WriteLine($"Database '{NewDatabaseId}' created successfully.");
+		Console.WriteLine($"Database '{settings.DatabaseId}' created successfully.");
 	}
 
 	public async Task DeleteDatabaseAsync()
@@ -36,7 +33,7 @@ class ControlPlaneAction(CosmosDbAccount cosmosDbAccount)
 		var database = await GetDatabase(cosmosDbAccountResource);
 		await database.DeleteAsync(WaitUntil.Completed);
 
-		Console.WriteLine($"Database '{NewDatabaseId}' deleted successfully.");
+		Console.WriteLine($"Database '{settings.DatabaseId}' deleted successfully.");
 	}
 
 	public async Task CreateContainerAsync()
@@ -45,32 +42,32 @@ class ControlPlaneAction(CosmosDbAccount cosmosDbAccount)
 		var database = await GetDatabase(cosmosDbAccountResource);
 		var containerCollection = database.GetCosmosDBSqlContainers();
 
-		var cosmosDbSqlContainerResourceInfo = new CosmosDBSqlContainerResourceInfo(NewContainerId)
+		var cosmosDbSqlContainerResourceInfo = new CosmosDBSqlContainerResourceInfo(settings.ContainerId)
 		{
 			PartitionKey = new CosmosDBContainerPartitionKey
 			{
 				Kind = CosmosDBPartitionKind.Hash,
-				Paths = { "/id" }
+				Paths = { "/PartitionKey" }
 			}
 		};
 
 		var containerData = new CosmosDBSqlContainerCreateOrUpdateContent(cosmosDbAccountResource.Data.Location,
 			cosmosDbSqlContainerResourceInfo);
 
-		await containerCollection.CreateOrUpdateAsync(WaitUntil.Completed, NewContainerId, containerData);
+		await containerCollection.CreateOrUpdateAsync(WaitUntil.Completed, settings.ContainerId, containerData);
 
-		Console.WriteLine($"Container '{NewContainerId}' created successfully.");
+		Console.WriteLine($"Container '{settings.ContainerId}' created successfully.");
 	}
 
 	public async Task DeleteContainerAsync()
 	{
 		var cosmosDbAccountResource = await cosmosDbAccount.GetAsync();
 		var database = await GetDatabase(cosmosDbAccountResource);
-		var container = await database.GetCosmosDBSqlContainers().GetAsync(NewContainerId);
+		var container = await database.GetCosmosDBSqlContainers().GetAsync(settings.ContainerId);
 
 		await container.Value.DeleteAsync(WaitUntil.Completed);
 
-		Console.WriteLine($"Container '{NewContainerId}' deleted successfully.");
+		Console.WriteLine($"Container '{settings.ContainerId}' deleted successfully.");
 	}
 
 	static CosmosDBSqlDatabaseCollection GetCosmosDbSqlDatabases(CosmosDBAccountResource cosmosDbAccount)
@@ -78,10 +75,10 @@ class ControlPlaneAction(CosmosDbAccount cosmosDbAccount)
 		return cosmosDbAccount.GetCosmosDBSqlDatabases();
 	}
 
-	static async Task<CosmosDBSqlDatabaseResource> GetDatabase(CosmosDBAccountResource cosmosDbAccount)
+	async Task<CosmosDBSqlDatabaseResource> GetDatabase(CosmosDBAccountResource cosmosDbAccount)
 	{
 		var databaseCollection = GetCosmosDbSqlDatabases(cosmosDbAccount);
-		var database = await databaseCollection.GetAsync(NewDatabaseId);
+		var database = await databaseCollection.GetAsync(settings.DatabaseId);
 		return database.Value;
 	}
 }
