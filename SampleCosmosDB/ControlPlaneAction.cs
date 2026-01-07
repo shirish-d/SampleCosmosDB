@@ -19,6 +19,16 @@ class ControlPlaneAction(CosmosDbAccount cosmosDbAccount, CosmosDbSettings setti
 		var cosmosDbAccountResource = await cosmosDbAccount.GetAsync();
 		var databaseCollection = GetCosmosDbSqlDatabases(cosmosDbAccountResource);
 
+		var response = await databaseCollection.GetIfExistsAsync(settings.DatabaseId);
+
+		if (response.HasValue)
+		{
+			_ = response.Value;
+			Console.WriteLine($"Database '{settings.DatabaseId}' exists");
+		}
+		else
+			Console.WriteLine($"Database '{settings.DatabaseId}' does not exist");
+
 		var databaseData = new CosmosDBSqlDatabaseCreateOrUpdateContent(cosmosDbAccountResource.Data.Location,
 			new CosmosDBSqlDatabaseResourceInfo(settings.DatabaseId));
 
@@ -30,7 +40,7 @@ class ControlPlaneAction(CosmosDbAccount cosmosDbAccount, CosmosDbSettings setti
 	public async Task DeleteDatabaseAsync()
 	{
 		var cosmosDbAccountResource = await cosmosDbAccount.GetAsync();
-		var database = await GetDatabase(cosmosDbAccountResource);
+		var database = await GetDatabaseAsync(cosmosDbAccountResource);
 		await database.DeleteAsync(WaitUntil.Completed);
 
 		Console.WriteLine($"Database '{settings.DatabaseId}' deleted successfully.");
@@ -39,7 +49,7 @@ class ControlPlaneAction(CosmosDbAccount cosmosDbAccount, CosmosDbSettings setti
 	public async Task CreateContainerAsync()
 	{
 		var cosmosDbAccountResource = await cosmosDbAccount.GetAsync();
-		var database = await GetDatabase(cosmosDbAccountResource);
+		var database = await GetDatabaseAsync(cosmosDbAccountResource);
 		var containerCollection = database.GetCosmosDBSqlContainers();
 
 		var cosmosDbSqlContainerResourceInfo = new CosmosDBSqlContainerResourceInfo(settings.ContainerId)
@@ -62,7 +72,7 @@ class ControlPlaneAction(CosmosDbAccount cosmosDbAccount, CosmosDbSettings setti
 	public async Task DeleteContainerAsync()
 	{
 		var cosmosDbAccountResource = await cosmosDbAccount.GetAsync();
-		var database = await GetDatabase(cosmosDbAccountResource);
+		var database = await GetDatabaseAsync(cosmosDbAccountResource);
 		var container = await database.GetCosmosDBSqlContainers().GetAsync(settings.ContainerId);
 
 		await container.Value.DeleteAsync(WaitUntil.Completed);
@@ -75,7 +85,7 @@ class ControlPlaneAction(CosmosDbAccount cosmosDbAccount, CosmosDbSettings setti
 		return cosmosDbAccount.GetCosmosDBSqlDatabases();
 	}
 
-	async Task<CosmosDBSqlDatabaseResource> GetDatabase(CosmosDBAccountResource cosmosDbAccount)
+	async Task<CosmosDBSqlDatabaseResource> GetDatabaseAsync(CosmosDBAccountResource cosmosDbAccount)
 	{
 		var databaseCollection = GetCosmosDbSqlDatabases(cosmosDbAccount);
 		var database = await databaseCollection.GetAsync(settings.DatabaseId);
